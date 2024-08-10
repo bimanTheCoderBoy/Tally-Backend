@@ -41,7 +41,7 @@ async function executeCoder(language, code, input) {
 async function runJavaCode(code, input) {
     const javaFileName = 'TempCode.java';
     const className = 'TempCode';
-    
+
     return new Promise((resolve, reject) => {
         // Write the Java code to a file
         fs.writeFileSync(javaFileName, code);
@@ -70,7 +70,6 @@ async function runJavaCode(code, input) {
     });
 }
 
-// Run compiled Java code inside Docker
 async function runJavaInDocker(className, input) {
     return new Promise(async (resolve, reject) => {
         const tempDir = process.cwd(); // Use current working directory for Docker binding
@@ -79,7 +78,8 @@ async function runJavaInDocker(className, input) {
             // Create Docker container for running the Java class
             const container = await docker.createContainer({
                 Image: 'openjdk:18-slim',
-                Cmd: ['sh', '-c', `echo "${input}" | java ${className}`],
+                Cmd: ['sh', '-c', `echo "${input}" | java TempCode`],
+                // Run the Java program
                 Tty: false,
                 HostConfig: {
                     AutoRemove: true, // Automatically remove after execution
@@ -90,18 +90,33 @@ async function runJavaInDocker(className, input) {
                     CpuQuota: 50000, // 50% of one CPU
                 },
                 WorkingDir: '/usr/src/app',
+                OpenStdin: true, // Open stdin for the container
+                StdinOnce: true, // Close stdin after the first write
             });
 
             // Start the container
             await container.start();
 
-            // Capture the output from the Docker container
-            const stream = await container.logs({ stdout: true, stderr: true, follow: true });
+            // Attach to the container's stdin, stdout, and stderr
+            const stream = await container.attach({
+                stream: true,
+                stdin: true,
+                stdout: true,
+                stderr: true,
+            });
+
             let output = '';
 
+            // Collect the output
             stream.on('data', (data) => {
                 output += data.toString();
             });
+
+            // Send input to the container's stdin
+            // if (input) {
+            //     stream.write(input);
+            //     stream.end(); // Close stdin
+            // }
 
             // Set a timeout for execution
             const timeoutPromise = new Promise((_, reject) =>
