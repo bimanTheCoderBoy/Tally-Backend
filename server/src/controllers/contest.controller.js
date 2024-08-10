@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import Contest from '../models/Contest.model.js';
 import AsyncHandler from "../utils/AsyncHandler.js"
 import crypto from 'crypto';
-
+import User from '../models/User.model.js';
 
 // Get all ongoing contests
 export const getAllContests = AsyncHandler(async (req, res) => {
@@ -97,35 +97,29 @@ export const createContest = AsyncHandler(async (req, res) => {
   await newContest.save();
 
   // Send success response
-  res.status(201).json(newContest);
+  res.status(201).json({contestCode:newContest.contestCode});
 
 });
 
 
 // Join a contest
 export const joinContest = AsyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { userName } = req.body;
+  // const { id } = req.params;
+  const { userName,contestCode } = req.body;
 
   // console.log("test");
   // console.log(id);
   // console.log(userName);
 
-  // Validate contest ID
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: 'Invalid contest ID format' });
-  }
+
 
   // Validate userName
-  if (!userName ) {
+  if (!userName ||!contestCode) {
     return res.status(400).json({ message: 'userName is required' });
   }
-  if (typeof userName !== 'string') {
-    return res.status(400).json({ message: 'Invalid userName format' });
-  }
-
+  
   // Find the contest and check if it exists
-  const contest = await Contest.findById(id);
+  const contest = await Contest.findOne({contestCode});
   if (!contest) {
     return res.status(404).json({ message: 'Contest not found' });
   }
@@ -136,21 +130,33 @@ export const joinContest = AsyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'This contest is not ongoing.' });
   }
 
-  // Generate a unique user ID based on userName and a random component
-  const userId = crypto.createHash('sha256').update(userName + Date.now().toString()).digest('hex');
+
 
   // Add the user to the participants array
-  contest.participants.push({ userId, userName });
+ const user=await User.create({
+   username:userName
+})
+  contest.participants.push(user._id);
 
   // Save the updated contest
   await contest.save();
-
+  const options={
+    expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+    httpOnly: true,
+  }
+  res.cookie('contest',{userid:user._id,contestCode}, options);
   // Respond with success
-  res.status(200).json({ message: 'User successfully joined the contest.', userName, userId });
+  res.status(200).json({ message: 'User successfully joined the contest.', userName });
 });
 
 
 
+
+
+export const submitContest = AsyncHandler(async(req,res)=>{
+  res.clearCookie('contest');
+  res.status(200).json({ message: 'User successfully submitted the contest' });
+});
 
 
 
@@ -177,3 +183,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
 //   res.status(200).json(Object.values(leaderboard));
 // });
+
+export const submitQuestion=AsyncHandler(async(req,res)=>{
+  
+})

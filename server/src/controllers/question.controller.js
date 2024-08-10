@@ -4,7 +4,7 @@ import AsyncHandler from '../utils/AsyncHandler.js';
 import mongoose from 'mongoose';
 import ApiError from '../utils/ApiError.js';
 import {executeCoder,runJavaCompile,runJavaInDocker} from '../utils/executeCoder.js';
-
+import fs from "fs"
 // Get all questions
 export const getAllQuestions = AsyncHandler(async (req, res) => {
   // get question tittle and dificulty level only as a form of an array of objects
@@ -79,6 +79,32 @@ export const addQuestion = AsyncHandler(async (req, res) => {
 });
 
 
+export const getDiscussions=AsyncHandler(async()=>{
+  const{id}=req.params;
+  if(!id){
+    throw new ApiError('Missing ID',400);
+  }
+  const question=await Question.findById(id);
+  const discussions=question.discussions;
+  res.status(200).json({discussions:discussions});
+})
+export const putDiscussions=AsyncHandler(async()=>{
+  const{id}=req.params;
+  if(!id){
+    throw new ApiError('Missing ID',400);
+  }
+
+  const {discussion}=req.body;
+  if(!discussion){
+    throw new ApiError('Missing required fields',400);
+  }
+  const question=await Question.findByIdAndUpdate(id,{$push:{discussions:discussion}});
+  if(!question){
+    throw new ApiError('Question not found',404);
+  }
+  res.status(200).json({message:'Discussion added successfully'});
+})
+
 //test code section
 export const runTestCase=AsyncHandler(async (req,res)=>{
   const {id}=req.params;
@@ -135,6 +161,17 @@ export const runTestCase=AsyncHandler(async (req,res)=>{
     // }
     // console.log('Test case passed');
   }
+  try {
+    if (fs.existsSync(folder)) {
+      // fs.unlinkSync(`${folder}/TempCode.java`);
+    fs.unlinkSync(`${folder}/TempCode.class`);
+        await fs.promises.rm(folder, { recursive: true, force: true });
+  
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  
 res.status(200).json(result);
 });
  
