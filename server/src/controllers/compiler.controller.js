@@ -5,7 +5,7 @@ import {executeCoder} from "../utils/executeCoder.js";
 
 const executeCode = AsyncHandler(async (req, res) => {
     const { language, code, input } = req.body;
-    if(!language||!code||!input){
+    if(!language||!code){
         throw new ApiError('Missing required fields',400);
       }
     const output = await executeCoder(language, code, input);

@@ -85,7 +85,7 @@ export const runTestCase=AsyncHandler(async (req,res)=>{
   const { language, code, input } = req.body;
 // console.log(language, code, input);
 
-  if(!language||!code||!input){
+  if(!language||!code){
     throw new ApiError('Missing required fields',400);
   }
   if(!id){
