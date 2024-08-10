@@ -252,5 +252,3 @@ function CodingPlayground() {
 }
 
 export default CodingPlayground;
-
-
