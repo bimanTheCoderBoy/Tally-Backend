@@ -78,6 +78,8 @@ async function runJavaCode(code, input) {
     });
 }
 
+
+
 async function runJavaInDocker(folder,className, input) {
     return new Promise(async (resolve, reject) => {
         const tempDir = process.cwd(); // Use current working directory for Docker binding
@@ -119,7 +121,7 @@ async function runJavaInDocker(folder,className, input) {
             stream.on('data', (data) => {
                 output += data.toString();
             });
-
+            console.log(folder);
             // Send input to the container's stdin
             // if (input) {
             //     stream.write(input);
@@ -149,4 +151,49 @@ async function runJavaInDocker(folder,className, input) {
     });
 }
 
-export {executeCoder}
+
+
+
+
+//just compiler
+async function runJavaCompile(code) {
+   
+    const className = 'TempCode';
+    const folder="f"+Math.floor(Math.random()*9999)+"f";
+    const javaFileName = path.join(folder, 'TempCode.java');
+    return new Promise((resolve, reject) => {
+        // Write the Java code to a file
+        fs.mkdirSync(folder, { recursive: true });
+        fs.writeFileSync(javaFileName, code);
+
+        // Compile the Java code
+        const javacProcess = spawn('javac', [javaFileName]);
+
+        javacProcess.on('close', async (code) => {
+            if (code !== 0) {
+                reject(new Error('Compilation failed'));
+                return;
+            }
+
+            try {
+                // After successful compilation, run the code inside Docker
+                // const output = await runJavaInDocker(folder,className, input);
+                fs.unlinkSync(javaFileName);
+               // fs.unlinkSync(`${folder}/${className}.class`);
+                // if (fs.existsSync(folder)) {
+                //     await fs.promises.rm(folder, { recursive: true, force: true });
+                // }
+                resolve(folder);
+            } catch (err) {
+                fs.unlinkSync(javaFileName);
+               // fs.unlinkSync(`${folder}/${className}.class`);
+                // if (fs.existsSync(folder)) {
+                //     await fs.promises.rm(folder, { recursive: true, force: true });
+                // }
+                reject(err);
+            }
+        });
+    });
+}
+
+export {executeCoder,runJavaCompile,runJavaInDocker}

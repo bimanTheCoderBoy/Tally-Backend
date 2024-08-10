@@ -8,13 +8,7 @@ import { autocompletion, completeFromList } from '@codemirror/autocomplete';
 import { closeBrackets } from '@codemirror/autocomplete';
 
 function CodingPlayground() {
-  const [code, setCode] = useState((''));
-  // const [code, setCode] = useState(boilerplateCode('java'));
-  const [language, setLanguage] = useState('java'); // Default to java
-  const [input, setInput] = useState(''); // New state for user input
-  const [output, setOutput] = useState('');
-  const [metrics, setMetrics] = useState({ time: '', memory: '' });
-
+  // const [code, setCode] = useState((''));
 
   const boilerplateCode = (lang) => {
     switch (lang) {
@@ -30,6 +24,14 @@ function CodingPlayground() {
         return '';
     }
   };
+  const [code, setCode] = useState();
+  const [language, setLanguage] = useState('java'); // Default to java
+  const [input, setInput] = useState(''); // New state for user input
+  const [output, setOutput] = useState('');
+  const [metrics, setMetrics] = useState({ time: '', memory: '' });
+
+
+ 
 
   const runCode = () => {
     // console.log(code);
@@ -176,7 +178,7 @@ function CodingPlayground() {
             className="h-full"
           /> */}
           <CodeMirror
-            value={code}
+            value={`class TempCode {}`}
             height="100%"
             extensions={[
               getLanguageExtension(language),
@@ -184,7 +186,7 @@ function CodingPlayground() {
               closeBrackets()   // Optional: Automatically close brackets and quotes
             ]}
             theme={oneDark}
-            onChange={(value) => setCode(value)}
+            onChange={(value) => setCode(`class TempCode {${value}}`)}
             // onChange={handleEditorChange}
             className="h-full"
           />
