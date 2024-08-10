@@ -110,7 +110,7 @@ export const runTestCase=AsyncHandler(async (req,res)=>{
   const {id}=req.params;
   const { language, code, input, className} = req.body;
 // console.log(language, code, input);
-
+    
   if(!language||!code){
     throw new ApiError('Missing required fields',400);
   }
@@ -128,6 +128,7 @@ export const runTestCase=AsyncHandler(async (req,res)=>{
 
   //compile the code
   const folder=await runJavaCompile(code,className);
+  console.log(className+"jjjjjjjjjjjjjjjjjj");
   console.log(folder+"  compiled")
   for(let i=0; i<testCases.length; i++){
     const tcinput=testCases[i].input;
@@ -164,7 +165,7 @@ export const runTestCase=AsyncHandler(async (req,res)=>{
   try {
     if (fs.existsSync(folder)) {
       // fs.unlinkSync(`${folder}/TempCode.java`);
-    fs.unlinkSync(`${folder}/TempCode.class`);
+    fs.unlinkSync(`${folder}/${className}.class`);
         await fs.promises.rm(folder, { recursive: true, force: true });
   
     }
