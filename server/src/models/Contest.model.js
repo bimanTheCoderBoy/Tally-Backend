@@ -15,18 +15,12 @@ const ContestSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  description: {
-    type: String,
-    required: true
-  },
+ 
   contestCode:{
     type:String,
     default:generateRandomString()
   },
-  creator: {
-    type: String,
-    required: true
-  },
+  
   startTime: {
     type: Date,
     required: true

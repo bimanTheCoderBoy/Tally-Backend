@@ -8,9 +8,12 @@ const router = express.Router();
 router.get('/all', getAllContests);
 
 router.get('/:id', getContestById);
+
 router.post('/add', createContest);
-router.post('/:id/join', joinContest);
-router.post('/submit', submitContest);
+
+router.post('/join', joinContest);
+
+router.post('/submit/:qid', submitContest);
 
 
 export default router;
