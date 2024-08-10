@@ -34,12 +34,30 @@ function CodingPlayground() {
   const [metrics, setMetrics] = useState({ time: '', memory: '' });
 
 
+  function extractClassName(code) {
+    const classNameMatch = code.match(/class\s+(\w+)/);
+    return classNameMatch ? classNameMatch[1] : null;
+  }
+
+
   const runCode = () => {
+
+    const className = extractClassName(code);
+
+    if (className==null) {
+      console.log('Error: No class name found your in the code.');
+      setOutput('Error: No class name found your in the code.');
+      return;
+    }
+
+    console.log('class name=', className);
+
+
     // console.log(code);
     // const codepost=`${code}`;
     const codepost = convertJavaToJSString(code);
 
-    console.log(codepost);
+    // console.log(codepost);
     axios.post('http://localhost:3010/api/v1/compiler/execute', { language, code: codepost, input })
       .then(response => {
         console.log(response);
@@ -165,7 +183,7 @@ function CodingPlayground() {
   //     setCode(value);
   //   }
   // };
-  
+
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
