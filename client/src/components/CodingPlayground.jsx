@@ -6,15 +6,15 @@ import { java } from '@codemirror/lang-java';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { autocompletion, completeFromList } from '@codemirror/autocomplete';
 import { closeBrackets } from '@codemirror/autocomplete';
-// import { EditorState, Transaction } from '@codemirror/state';
 
 function CodingPlayground() {
-  // const [code, setCode] = useState((''));
-  const [code, setCode] = useState(boilerplateCode('java'));
+  const [code, setCode] = useState((''));
+  // const [code, setCode] = useState(boilerplateCode('java'));
   const [language, setLanguage] = useState('java'); // Default to java
   const [input, setInput] = useState(''); // New state for user input
   const [output, setOutput] = useState('');
   const [metrics, setMetrics] = useState({ time: '', memory: '' });
+
 
   const boilerplateCode = (lang) => {
     switch (lang) {
@@ -67,7 +67,7 @@ function CodingPlayground() {
   const handleLanguageChange = (event) => {
     const selectedLanguage = event.target.value;
     setLanguage(selectedLanguage);
-    setCode(boilerplateCode(selectedLanguage)); // Reset boilerplate code on language change
+    // setCode(boilerplateCode(selectedLanguage)); // Reset boilerplate code on language change
   };
 
   const getLanguageExtension = (lang) => {
@@ -144,20 +144,6 @@ function CodingPlayground() {
   );
 
 
-  const handleEditorChange = (value, viewUpdate) => {
-    const doc = viewUpdate.state.doc.toString();
-    const boilerplate = boilerplateCode(language);
-    if (doc.startsWith(boilerplate)) {
-      const transaction = viewUpdate.view.state.update({
-        changes: { from: boilerplate.length, insert: value.slice(boilerplate.length) },
-        effects: [EditorState.readOnly.of(true)],
-      });
-      viewUpdate.view.dispatch(transaction);
-    } else {
-      setCode(value);
-    }
-  };
-
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Left Side: Code Editor */}
@@ -198,8 +184,8 @@ function CodingPlayground() {
               closeBrackets()   // Optional: Automatically close brackets and quotes
             ]}
             theme={oneDark}
-            // onChange={(value) => setCode(value)}
-            onChange={handleEditorChange}
+            onChange={(value) => setCode(value)}
+            // onChange={handleEditorChange}
             className="h-full"
           />
         </div>
