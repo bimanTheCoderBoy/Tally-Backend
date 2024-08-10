@@ -1,6 +1,6 @@
 
 import mongoose from 'mongoose';
-function generateRandomString(length = 5) {
+function generateRandomString(length = 8) {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -13,7 +13,7 @@ function generateRandomString(length = 5) {
 const ContestSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true 
   },
  
   contestCode:{

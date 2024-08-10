@@ -52,8 +52,7 @@ export const getContestById = AsyncHandler(async (req, res) => {
 // Create a new contest
 export const createContest = AsyncHandler(async (req, res) => {
   // Extract fields from request body
-  const { title, description, creator, startTime, endTime, questions } =
-    req.body;
+  const { title, startTime, endTime, questions } = req.body;
 
   // console.log(title);
   // console.log(description);
@@ -111,8 +110,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
   // const { id } = req.params;
   const { userName, contestCode } = req.body;
 
-
-  // Validate userName
+  // Validate userName & contestCode
   if (!userName || !contestCode) {
     return res.status(400).json({ message: "userName is required" });
   }
@@ -132,14 +130,23 @@ export const joinContest = AsyncHandler(async (req, res) => {
   // Access the 'contest' cookie
   const contestCookie = req.cookies.contest;
 
+  // console.log(contestCookie.userid);
+
   // Check if the cookie exists
   if (contestCookie) {
     // Extract userid and contestCode from the cookie
     const { userid } = contestCookie;
 
-    // Add the user to the participants array if not already added
+    console.log(contest.participants.includes(userid));
+    console.log(contest.participants);
+    console.log(userid);
+
+    // return user details if already added
     if (contest.participants.includes(userid)) {
-      res.status(200).json({ message: "User is already within the contest", userName }); 
+      res.status(200).json({
+        username: user.username,
+        questions: user.questions,
+      });
     }
   }
 
@@ -152,9 +159,12 @@ export const joinContest = AsyncHandler(async (req, res) => {
   // Save the updated contest
   await contest.save();
 
+  // Calculate the time difference for the cookie expiration
+  const expiresIn = new Date(contest.endTime) - new Date();
+
   const options = {
-    expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
-    // expires: contest.endTime,
+    // expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+    expires: new Date(Date.now() + expiresIn), // Set expiration to contest end time
     httpOnly: true,
   };
   res.cookie(
@@ -276,8 +286,7 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
     }
   }
   if (allPassed) {
-    
-     await User.findByIdAndUpdate(userid,{ $push: { questions: qid } });
+    await User.findByIdAndUpdate(userid, { $push: { questions: qid } });
   }
 
   res.status(200).json(result);
