@@ -3,7 +3,7 @@ import Question from '../models/Questions.model.js';
 import AsyncHandler from '../utils/AsyncHandler.js';
 import mongoose from 'mongoose';
 import ApiError from '../utils/ApiError.js';
-import {executeCoder} from '../utils/executeCoder.js';
+import {executeCoder,runJavaCompile,runJavaInDocker} from '../utils/executeCoder.js';
 
 // Get all questions
 export const getAllQuestions = AsyncHandler(async (req, res) => {
@@ -99,13 +99,19 @@ export const runTestCase=AsyncHandler(async (req,res)=>{
   }
   let result=[];
   const testCases=question.testCases;
+
+  //compile the code
+  const folder=await runJavaCompile(code);
+  console.log(folder+"  compiled")
   for(let i=0; i<testCases.length; i++){
     const tcinput=testCases[i].input;
     const tcoutput=testCases[i].output;
-    const actualOutput=executeCoder(language,code,tcinput);
-    if(actualOutput!=tcoutput){
-      throw new ApiError('Test case failed',400);
-    }
+    let actualOutput= await runJavaInDocker(folder,"TempCode",tcinput);
+    // if(actualOutput!=tcoutput){
+    //   throw new ApiError('Test case failed',400);
+    // }
+    actualOutput=actualOutput.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+    console.log(actualOutput);
     if(actualOutput==tcoutput){
       result.push({
         input:tcinput,
