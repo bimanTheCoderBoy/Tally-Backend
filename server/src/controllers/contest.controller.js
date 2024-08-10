@@ -107,9 +107,9 @@ export const joinContest = AsyncHandler(async (req, res) => {
   const { id } = req.params;
   const { userName } = req.body;
 
-  console.log("test");
-  console.log(id);
-  console.log(userName);
+  // console.log("test");
+  // console.log(id);
+  // console.log(userName);
 
   // Validate contest ID
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -146,7 +146,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
   await contest.save();
 
   // Respond with success
-  res.status(200).json({ message: 'User successfully joined the contest.', userId });
+  res.status(200).json({ message: 'User successfully joined the contest.', userName, userId });
 });
 
 
