@@ -101,7 +101,53 @@ export const createContest = AsyncHandler(async (req, res) => {
 
 });
 
-export const joinContest = AsyncHandler();
+
+// Join a contest
+export const joinContest = AsyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { userName } = req.body;
+
+  console.log("test");
+  console.log(id);
+  console.log(userName);
+
+  // Validate contest ID
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid contest ID format' });
+  }
+
+  // Validate userName
+  if (!userName ) {
+    return res.status(400).json({ message: 'userName is required' });
+  }
+  if (typeof userName !== 'string') {
+    return res.status(400).json({ message: 'Invalid userName format' });
+  }
+
+  // Find the contest and check if it exists
+  const contest = await Contest.findById(id);
+  if (!contest) {
+    return res.status(404).json({ message: 'Contest not found' });
+  }
+
+  // Check if the contest is ongoing
+  const currentTime = new Date();
+  if (currentTime < contest.startTime || currentTime > contest.endTime) {
+    return res.status(400).json({ message: 'This contest is not ongoing.' });
+  }
+
+  // Generate a unique user ID based on userName and a random component
+  const userId = crypto.createHash('sha256').update(userName + Date.now().toString()).digest('hex');
+
+  // Add the user to the participants array
+  contest.participants.push({ userId, userName });
+
+  // Save the updated contest
+  await contest.save();
+
+  // Respond with success
+  res.status(200).json({ message: 'User successfully joined the contest.', userId });
+});
 
 
 

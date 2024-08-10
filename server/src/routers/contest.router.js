@@ -13,6 +13,5 @@ router.post('/add', createContest);
 
 router.post('/:id/join', joinContest);
 
-// router.get('/:id/leaderboard', getLeaderboard);
 
 export default router;
