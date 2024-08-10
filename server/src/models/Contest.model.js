@@ -1,6 +1,15 @@
 
 import mongoose from 'mongoose';
+function generateRandomString(length = 5) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
+  for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  return result;
+}
 const ContestSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -9,6 +18,10 @@ const ContestSchema = new mongoose.Schema({
   description: {
     type: String,
     required: true
+  },
+  contestCode:{
+    type:String,
+    default:generateRandomString()
   },
   creator: {
     type: String,
@@ -26,15 +39,10 @@ const ContestSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Question'
   }],
+
   participants: [{
-    userId: {
-      type: String,
-      required: true
-    },
-    userName: {
-      type: String,
-      required: true
-    }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }]
 });
 

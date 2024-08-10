@@ -7,7 +7,8 @@ import path from "path"
 // Initialize Docker client
 const docker = new Docker();
 
-async function executeCoder(language, code, input) {
+async function executeCoder(language, code, input,className) {
+   
     function cleanOutput(output) {
         return output.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
     }
@@ -19,7 +20,7 @@ async function executeCoder(language, code, input) {
 
     switch (language) {
         case 'java':
-            output = await runJavaCode(code, input);
+            output = await runJavaCode(code, input,className);
             break;
         // Add cases for other languages as needed
         default:
@@ -38,25 +39,26 @@ async function executeCoder(language, code, input) {
 }
 
 // Compile Java code locally and then run it in Docker
-async function runJavaCode(code, input) {
-   
-    const className = 'TempCode';
+async function runJavaCode(code, input,className) {
+    
+    // const className = 'TempCode';
     const folder="f"+Math.floor(Math.random()*9999)+"f";
     const javaFileName = path.join(folder, 'TempCode.java');
     return new Promise((resolve, reject) => {
         // Write the Java code to a file
         fs.mkdirSync(folder, { recursive: true });
         fs.writeFileSync(javaFileName, code);
-
+        
         // Compile the Java code
         const javacProcess = spawn('javac', [javaFileName]);
-
+        
         javacProcess.on('close', async (code) => {
             if (code !== 0) {
+                console.log(className)
                 reject(new Error('Compilation failed'));
                 return;
             }
-
+           
             try {
                 // After successful compilation, run the code inside Docker
                 const output = await runJavaInDocker(folder,className, input);
@@ -81,9 +83,10 @@ async function runJavaCode(code, input) {
 
 
 async function runJavaInDocker(folder,className, input) {
+    console.log(className+"twst ");
     return new Promise(async (resolve, reject) => {
         const tempDir = process.cwd(); // Use current working directory for Docker binding
-
+        
         try {
             // Create Docker container for running the Java class
             const container = await docker.createContainer({
@@ -156,9 +159,8 @@ async function runJavaInDocker(folder,className, input) {
 
 
 //just compiler
-async function runJavaCompile(code) {
+async function runJavaCompile(code,className) {
    
-    const className = 'TempCode';
     const folder="f"+Math.floor(Math.random()*9999)+"f";
     const javaFileName = path.join(folder, 'TempCode.java');
     return new Promise((resolve, reject) => {

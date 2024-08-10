@@ -42,10 +42,12 @@ const QuestionSchema = new mongoose.Schema({
     required: true,
   },
   author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to the user who created the question
-    required: true,
-  }, 
+    type: String
+  },
+  discussions: {
+    type: [String], // An array of strings representing discussion topics
+    
+  },
 }, {timestramps :true});
 
 
