@@ -3,7 +3,7 @@ import ApiError from "../utils/ApiError.js";
 import { spawn } from "child_process";
 import fs from "fs";
 import Docker from "dockerode";
-
+import path from "path"
 // Initialize Docker client
 const docker = new Docker();
 
@@ -39,11 +39,13 @@ async function executeCoder(language, code, input) {
 
 // Compile Java code locally and then run it in Docker
 async function runJavaCode(code, input) {
-    const javaFileName = 'TempCode.java';
+   
     const className = 'TempCode';
-    
+    const folder="f"+Math.floor(Math.random()*9999)+"f";
+    const javaFileName = path.join(folder, 'TempCode.java');
     return new Promise((resolve, reject) => {
         // Write the Java code to a file
+        fs.mkdirSync(folder, { recursive: true });
         fs.writeFileSync(javaFileName, code);
 
         // Compile the Java code
@@ -57,21 +59,26 @@ async function runJavaCode(code, input) {
 
             try {
                 // After successful compilation, run the code inside Docker
-                const output = await runJavaInDocker(className, input);
+                const output = await runJavaInDocker(folder,className, input);
                 fs.unlinkSync(javaFileName);
-                fs.unlinkSync(`${className}.class`);
+                fs.unlinkSync(`${folder}/${className}.class`);
+                if (fs.existsSync(folder)) {
+                    await fs.promises.rm(folder, { recursive: true, force: true });
+                }
                 resolve(output);
             } catch (err) {
                 fs.unlinkSync(javaFileName);
-                fs.unlinkSync(`${className}.class`);
+                fs.unlinkSync(`${folder}/${className}.class`);
+                if (fs.existsSync(folder)) {
+                    await fs.promises.rm(folder, { recursive: true, force: true });
+                }
                 reject(err);
             }
         });
     });
 }
 
-// Run compiled Java code inside Docker
-async function runJavaInDocker(className, input) {
+async function runJavaInDocker(folder,className, input) {
     return new Promise(async (resolve, reject) => {
         const tempDir = process.cwd(); // Use current working directory for Docker binding
 
@@ -79,7 +86,8 @@ async function runJavaInDocker(className, input) {
             // Create Docker container for running the Java class
             const container = await docker.createContainer({
                 Image: 'openjdk:18-slim',
-                Cmd: ['sh', '-c', `echo "${input}" | java ${className}`],
+                Cmd: ['sh', '-c', `echo "${input}" | java -cp ${folder} ${className}`],
+                // Run the Java program
                 Tty: false,
                 HostConfig: {
                     AutoRemove: true, // Automatically remove after execution
@@ -90,18 +98,33 @@ async function runJavaInDocker(className, input) {
                     CpuQuota: 50000, // 50% of one CPU
                 },
                 WorkingDir: '/usr/src/app',
+                OpenStdin: true, // Open stdin for the container
+                StdinOnce: true, // Close stdin after the first write
             });
 
             // Start the container
             await container.start();
 
-            // Capture the output from the Docker container
-            const stream = await container.logs({ stdout: true, stderr: true, follow: true });
+            // Attach to the container's stdin, stdout, and stderr
+            const stream = await container.attach({
+                stream: true,
+                stdin: true,
+                stdout: true,
+                stderr: true,
+            });
+
             let output = '';
 
+            // Collect the output
             stream.on('data', (data) => {
                 output += data.toString();
             });
+
+            // Send input to the container's stdin
+            // if (input) {
+            //     stream.write(input);
+            //     stream.end(); // Close stdin
+            // }
 
             // Set a timeout for execution
             const timeoutPromise = new Promise((_, reject) =>
