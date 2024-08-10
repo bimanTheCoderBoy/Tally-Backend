@@ -8,7 +8,7 @@ import { autocompletion, completeFromList } from '@codemirror/autocomplete';
 import { closeBrackets } from '@codemirror/autocomplete';
 
 function CodingPlayground() {
-  // const [code, setCode] = useState((''));
+
 
   const boilerplateCode = (lang) => {
     switch (lang) {
@@ -18,20 +18,12 @@ function CodingPlayground() {
 }`;
       case 'cpp':
         return `class TempCode {
-    // write your code here . . .
+  // write your code here . . .
 };`;
       default:
         return '';
     }
   };
-  const [code, setCode] = useState();
-  const [language, setLanguage] = useState('java'); // Default to java
-  const [input, setInput] = useState(''); // New state for user input
-  const [output, setOutput] = useState('');
-  const [metrics, setMetrics] = useState({ time: '', memory: '' });
-
-
- 
 
   const runCode = () => {
     // console.log(code);
@@ -69,7 +61,7 @@ function CodingPlayground() {
   const handleLanguageChange = (event) => {
     const selectedLanguage = event.target.value;
     setLanguage(selectedLanguage);
-    // setCode(boilerplateCode(selectedLanguage)); // Reset boilerplate code on language change
+    setCode(boilerplateCode(selectedLanguage)); // Reset boilerplate code on language change
   };
 
   const getLanguageExtension = (lang) => {
