@@ -1,8 +1,8 @@
 
 import mongoose from 'mongoose';
 import Contest from '../models/Contest.model.js';
-// import Submission from '../models/Submission.model.js';
 import AsyncHandler from "../utils/AsyncHandler.js"
+import crypto from 'crypto';
 
 
 // Get all ongoing contests
@@ -100,6 +100,14 @@ export const createContest = AsyncHandler(async (req, res) => {
   res.status(201).json(newContest);
 
 });
+
+export const joinContest = AsyncHandler();
+
+
+
+
+
+
 
 // // Get leaderboard for a specific contest
 // export const getLeaderboard = AsyncHandler(async (req, res) => {

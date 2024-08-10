@@ -26,10 +26,16 @@ const ContestSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Question'
   }],
-  // participants: [{
-  //   type: Schema.Types.ObjectId,
-  //   ref: 'User'
-  // }]
+  participants: [{
+    userId: {
+      type: String,
+      required: true
+    },
+    userName: {
+      type: String,
+      required: true
+    }
+  }]
 });
 
 export default mongoose.model('Contest', ContestSchema);
