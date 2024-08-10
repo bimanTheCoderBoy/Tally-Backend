@@ -159,7 +159,7 @@ async function runJavaInDocker(folder,className, input) {
 
 
 //just compiler
-async function runJavaCompile(code,className) {
+async function runJavaCompile(code) {
    
     const folder="f"+Math.floor(Math.random()*9999)+"f";
     const javaFileName = path.join(folder, 'TempCode.java');
@@ -173,6 +173,7 @@ async function runJavaCompile(code,className) {
 
         javacProcess.on('close', async (code) => {
             if (code !== 0) {
+                
                 reject(new Error('Compilation failed'));
                 return;
             }
