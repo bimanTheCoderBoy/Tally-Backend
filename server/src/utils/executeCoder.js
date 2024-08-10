@@ -159,9 +159,8 @@ async function runJavaInDocker(folder,className, input) {
 
 
 //just compiler
-async function runJavaCompile(code) {
+async function runJavaCompile(code,className) {
    
-    const className = 'TempCode';
     const folder="f"+Math.floor(Math.random()*9999)+"f";
     const javaFileName = path.join(folder, 'TempCode.java');
     return new Promise((resolve, reject) => {

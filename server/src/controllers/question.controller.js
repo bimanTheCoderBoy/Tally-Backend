@@ -108,7 +108,7 @@ export const putDiscussions=AsyncHandler(async()=>{
 //test code section
 export const runTestCase=AsyncHandler(async (req,res)=>{
   const {id}=req.params;
-  const { language, code, input } = req.body;
+  const { language, code, input, className} = req.body;
 // console.log(language, code, input);
 
   if(!language||!code){
@@ -127,12 +127,12 @@ export const runTestCase=AsyncHandler(async (req,res)=>{
   const testCases=question.testCases;
 
   //compile the code
-  const folder=await runJavaCompile(code);
+  const folder=await runJavaCompile(code,className);
   console.log(folder+"  compiled")
   for(let i=0; i<testCases.length; i++){
     const tcinput=testCases[i].input;
     const tcoutput=testCases[i].output;
-    let actualOutput= await runJavaInDocker(folder,"TempCode",tcinput);
+    let actualOutput= await runJavaInDocker(folder,className,tcinput);
     // if(actualOutput!=tcoutput){
     //   throw new ApiError('Test case failed',400);
     // }
