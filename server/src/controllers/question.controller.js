@@ -45,13 +45,13 @@ export const addQuestion = AsyncHandler(async (req, res) => {
   // console.log("test");
   const { title, description, difficulty, constraints, testCases, author } = req.body;
 
-  console.log(res.body);
-  console.log(title);
-  console.log(description);
-  console.log(difficulty);
-  console.log(constraints);
-  console.log(testCases);
-  console.log(author);
+  // console.log(res.body);
+  // console.log(title);
+  // console.log(description);
+  // console.log(difficulty);
+  // console.log(constraints);
+  // console.log(testCases);
+  // console.log(author);
 
   if (!title || !description || !difficulty || !constraints || !testCases || !author) {
     return res.status(400).json({ message: 'All fields are required.' });
