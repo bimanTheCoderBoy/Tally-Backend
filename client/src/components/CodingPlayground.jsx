@@ -137,7 +137,10 @@ function CodingPlayground() {
 
     // Notable Annotations
     'Override', 'Deprecated', 'SuppressWarnings', 'FunctionalInterface', 'SafeVarargs', 'Retention',
-    'Target', 'Inherited', 'Documented'
+    'Target', 'Inherited', 'Documented',
+
+    //
+    'out', 'print', 'println'
   ];
 
 
@@ -146,6 +149,23 @@ function CodingPlayground() {
     javaKeywords.map(javaKeywords => ({ label: javaKeywords }))
   );
 
+
+  // Handle editor change to preserve boilerplate and allow user code editing
+  const handleEditorChange = (value) => {
+    const boilerplate = boilerplateCode(language);
+    const startCommentIndex = boilerplate.indexOf('// write your code here . . .') + '// write your code here . . .'.length;
+    const endCommentIndex = boilerplate.lastIndexOf('}') + 1;
+
+    // If the editor content starts with the boilerplate, extract user code
+    if (value.startsWith(boilerplate)) {
+      const userCode = value.slice(startCommentIndex, endCommentIndex).trim();
+      setCode(`${boilerplate.slice(0, startCommentIndex)}\n${userCode}\n${boilerplate.slice(endCommentIndex)}`);
+    } else {
+      // If the editor content doesn't start with the boilerplate, reset it
+      setCode(value);
+    }
+  };
+  
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
@@ -187,8 +207,8 @@ function CodingPlayground() {
               closeBrackets()   // Optional: Automatically close brackets and quotes
             ]}
             theme={oneDark}
-            onChange={(value) => setCode(value)}
-            // onChange={handleEditorChange}
+            // onChange={(value) => setCode(value)}
+            onChange={(value) => handleEditorChange(value)}
             className="h-full"
           />
         </div>
