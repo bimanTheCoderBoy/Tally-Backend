@@ -1,0 +1,1 @@
+class Test { // write your code here . . . public static void main(String[] args){ System.out.println("test"); } } class Hello{ System.out.println("hello"); }
