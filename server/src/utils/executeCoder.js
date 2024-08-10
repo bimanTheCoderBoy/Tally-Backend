@@ -13,27 +13,30 @@ async function executeCoder(language, code, input,className) {
         return output.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
     }
     // Start time
-    const startTime = process.hrtime();
+    // const startTime = process.hrtime();
     // Initial memory usage
-    const startMemoryUsage = process.memoryUsage();
+    // const startMemoryUsage = process.memoryUsage();
     let output;
+
+    let executionTime, memoryUsed;
 
     switch (language) {
         case 'java':
-            output = await runJavaCode(code, input,className);
+            // output = await runJavaCode(code, input,className);
+            ({ output, executionTime, memoryUsed } = await runJavaCode(code, input, className));
             break;
         // Add cases for other languages as needed
         default:
             throw new ApiError('Unsupported language', 404);
     }
     
-    // End time
-    const endTime = process.hrtime(startTime);
-    const executionTime = (endTime[0] * 1000 + endTime[1] / 1e6) + " ms";
+    // // End time
+    // const endTime = process.hrtime(startTime);
+    // const executionTime = (endTime[0] * 1000 + endTime[1] / 1e6) + " ms";
 
-    // After execution memory usage
-    const endMemoryUsage = process.memoryUsage();
-    const memoryUsed = ((endMemoryUsage.rss - startMemoryUsage.rss) / 1024 / 1024).toFixed(2) + " MB";
+    // // After execution memory usage
+    // const endMemoryUsage = process.memoryUsage();
+    // const memoryUsed = ((endMemoryUsage.rss - startMemoryUsage.rss) / 1024 / 1024).toFixed(2) + " MB";
 
     return {output:cleanOutput( output), executionTime, memoryUsed };
 }
@@ -61,13 +64,16 @@ async function runJavaCode(code, input,className) {
            
             try {
                 // After successful compilation, run the code inside Docker
-                const output = await runJavaInDocker(folder,className, input);
+                // const output = await runJavaInDocker(folder,className, input);
+                const { output, executionTime, memoryUsed } = await runJavaInDocker(folder, className, input);
+
                 fs.unlinkSync(javaFileName);
                 fs.unlinkSync(`${folder}/${className}.class`);
                 if (fs.existsSync(folder)) {
                     await fs.promises.rm(folder, { recursive: true, force: true });
                 }
-                resolve(output);
+                // resolve(output);
+                resolve({ output, executionTime, memoryUsed });
             } catch (err) {
                 fs.unlinkSync(javaFileName);
                 fs.unlinkSync(`${folder}/${className}.class`);
@@ -88,6 +94,8 @@ async function runJavaInDocker(folder,className, input) {
         const tempDir = process.cwd(); // Use current working directory for Docker binding
         
         try {
+            const startTime = process.hrtime();
+
             // Create Docker container for running the Java class
             const container = await docker.createContainer({
                 Image: 'openjdk:18-slim',
@@ -147,7 +155,16 @@ async function runJavaInDocker(folder,className, input) {
                 timeoutPromise
             ]);
 
-            resolve(output);
+            // End time and calculate execution time
+            const endTime = process.hrtime(startTime);
+            const executionTime = (endTime[0] * 1000 + endTime[1] / 1e6).toFixed(2) + " ms";
+
+             // Fetch memory used by the container (Docker stats)
+             const stats = await container.stats({ stream: false });
+             const memoryUsed = (stats.memory_stats.usage / 1024 / 1024).toFixed(2) + " MB";
+
+            // resolve(output);
+            resolve({ output, executionTime, memoryUsed });
         } catch (err) {
             reject(`Error running Docker container: ${err.message}`);
         }

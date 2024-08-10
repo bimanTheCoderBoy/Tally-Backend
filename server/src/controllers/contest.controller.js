@@ -12,8 +12,8 @@ import {
 // Get all ongoing contests
 export const getAllContests = AsyncHandler(async (req, res) => {
   // Find contests where the end time is greater than or equal to the current date
-  const contests = await Contest.find({ endTime: { $gte: new Date() } }).select(
-    "title startTime endTime"
+  const contests = await Contest.find().select(
+    "title startTime endTime contestCode"
   );
 
   // Check if there are no ongoing contests
@@ -27,15 +27,13 @@ export const getAllContests = AsyncHandler(async (req, res) => {
 
 // Get a single contest by ID
 export const getContestById = AsyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { contestCode } = req.body;
 
   // Validate the ID format (assuming it's a MongoDB ObjectId)
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "Invalid contest ID format" });
-  }
+  
 
   // const contest = await Contest.findById(id).populate('questions');
-  const contest = await Contest.findById(id).select("-_id -__v").populate({
+  const contest = await Contest.findOne({contestCode}).select(" -__v").populate({
     path: "questions",
     select: "title difficulty",
   });
@@ -135,18 +133,20 @@ export const joinContest = AsyncHandler(async (req, res) => {
   // Check if the cookie exists
   if (contestCookie) {
     // Extract userid and contestCode from the cookie
-    const { userid } = contestCookie;
+    const { userid } = JSON.parse(contestCookie);
 
-    console.log(contest.participants.includes(userid));
-    console.log(contest.participants);
+    // console.log(contest.participants.includes(userid));
+    // console.log(contest.participants);
     console.log(userid);
 
     // return user details if already added
     if (contest.participants.includes(userid)) {
+      const findUser = await User.findById(userid);
       res.status(200).json({
-        username: user.username,
-        questions: user.questions,
+        username: findUser.username,
+        questions: findUser.questions,
       });
+      return;
     }
   }
 
@@ -290,4 +290,28 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   }
 
   res.status(200).json(result);
+});
+
+export const getUser = AsyncHandler(async (req, res, next) => {
+  // Access the 'contest' cookie
+  const contestCookie = req.cookies.contest;
+
+  // Check if the cookie exists
+  if (contestCookie) {
+    // Extract userid from the cookie
+    const { userid,contestCode } = JSON.parse(contestCookie);
+
+    // return user details if already added
+    if (contest.participants.includes(userid)) {
+      const findUser = await User.findById(userid);
+      res.status(200).json({
+        findUser,
+        contestCode,
+        success:true
+      });
+     
+    }
+  }else{
+    return res.status(400).json({ success:false,message: "User not found" });
+  }
 });
