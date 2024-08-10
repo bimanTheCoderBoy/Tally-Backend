@@ -27,13 +27,13 @@ export const getAllContests = AsyncHandler(async (req, res) => {
 
 // Get a single contest by ID
 export const getContestById = AsyncHandler(async (req, res) => {
-  const { contestCode } = req.body;
+  const { contestcode } = req.params;
 
   // Validate the ID format (assuming it's a MongoDB ObjectId)
   
 
   // const contest = await Contest.findById(id).populate('questions');
-  const contest = await Contest.findOne({contestCode}).select(" -__v").populate({
+  const contest = await Contest.findOne({contestCode:contestcode}).select(" -__v").populate({
     path: "questions",
     select: "title difficulty",
   });

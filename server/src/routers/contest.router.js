@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/all', getAllContests);
 
-router.get('/get', getContestById);
+router.get('/get/:contestcode', getContestById);
 
 router.post('/add', createContest);
 
