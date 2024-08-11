@@ -1,6 +1,6 @@
 
 import express from 'express';
-import { getAllContests, getContestById, createContest, joinContest, submitContest, getUser,getLeaderboard } from '../controllers/contest.controller.js';
+import { getAllContests, getContestById, createContest, joinContest, submitContest, getUser,getLeaderboard ,submitQuestion} from '../controllers/contest.controller.js';
 
 
 const router = express.Router();
@@ -13,10 +13,10 @@ router.post('/add', createContest);
 
 router.post('/join', joinContest);
 
-router.post('/submit/:qid', submitContest);
+router.post('/submit/:qid', submitQuestion);
 
 router.get('/getuser', getUser);
-router.get('getleaderboard/:contestcode', getLeaderboard);
+router.get('/getleaderboard/:contestcode', getLeaderboard);
 
 
 export default router;

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Contest from "../models/Contest.model.js";
 import Question from "../models/Questions.model.js";
 import AsyncHandler from "../utils/AsyncHandler.js";
-import crypto from "crypto";
+import fs from "fs";
 import User from "../models/User.model.js";
 import {
   executeCoder,
@@ -30,10 +30,10 @@ export const getContestById = AsyncHandler(async (req, res) => {
   const { contestcode } = req.params;
 
   // Validate the ID format (assuming it's a MongoDB ObjectId)
-  
+
 
   // const contest = await Contest.findById(id).populate('questions');
-  const contest = await Contest.findOne({contestCode:contestcode}).select(" -__v").populate({
+  const contest = await Contest.findOne({ contestCode: contestcode }).select(" -__v").populate({
     path: "questions",
     select: "title difficulty",
   });
@@ -88,12 +88,19 @@ export const createContest = AsyncHandler(async (req, res) => {
       .json({ message: "startTime must be before endTime." });
   }
 
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  for (let i = 0; i < 8; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
   // Create new contest
   const newContest = new Contest({
     title,
     startTime: start,
     endTime: end,
-    contestCode:Math.floor(Math.random() * 100000),
+    contestCode: result,
     questions,
   });
 
@@ -101,7 +108,7 @@ export const createContest = AsyncHandler(async (req, res) => {
   await newContest.save();
 
   // Send success response
-  res.status(201).json({ contestCode: newContest.contestCode });
+  res.status(201).json(newContest.contestCode);
 });
 
 // Join a contest
@@ -213,6 +220,8 @@ export const submitContest = AsyncHandler(async (req, res) => {
 // });
 
 export const submitQuestion = AsyncHandler(async (req, res) => {
+
+
   const { qid } = req.params;
   const data = req.cookies.contest;
   const { userid, contestCode } = JSON.parse(data);
@@ -232,24 +241,17 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   }
 
   const question = await Question.findById(qid);
-
   if (!question) {
     throw new ApiError("Question not found", 404);
   }
   let result = [];
   const testCases = question.testCases;
-
   //compile the code
   const folder = await runJavaCompile(code, className);
-  console.log(className + "jjjjjjjjjjjjjjjjjj");
-  console.log(folder + "  compiled");
   for (let i = 0; i < testCases.length; i++) {
     const tcinput = testCases[i].input;
     const tcoutput = testCases[i].output;
     let actualOutput = await runJavaInDocker(folder, className, tcinput);
-    // if(actualOutput!=tcoutput){
-    //   throw new ApiError('Test case failed',400);
-    // }
     actualOutput = actualOutput.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
     console.log(actualOutput);
     if (actualOutput == tcoutput) {
@@ -267,13 +269,6 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
         status: "failed",
       });
     }
-
-    // console.log(input, expectedOutput);
-    // let result=await runCode(language, code, input);
-    // if(result!=expectedOutput){
-    //   throw new ApiError('Test case failed',400);
-    // }
-    // console.log('Test case passed');
   }
   try {
     if (fs.existsSync(folder)) {
@@ -285,14 +280,15 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
     console.log(error);
   }
   let allPassed = true;
-  for (let i = 0; i < results.length; i++) {
-    if (!results[i].status == "pass") {
+  for (let i = 0; i < result.length; i++) {
+    if (!result[i].status == "passed") {
       allPassed = false;
       break;
     }
   }
+  console.log(allPassed);
   if (allPassed) {
-    await User.findByIdAndUpdate(userid, { $push: { questions: qid } });
+    const response = await User.findByIdAndUpdate(userid, { $push: { questions: qid } });
   }
 
   res.status(200).json(result);
@@ -305,33 +301,39 @@ export const getUser = AsyncHandler(async (req, res, next) => {
   // Check if the cookie exists
   if (contestCookie) {
     // Extract userid from the cookie
-    const { userid,contestCode } = JSON.parse(contestCookie);
+    const { userid, contestCode } = JSON.parse(contestCookie);
 
+    const contest = await Contest.findOne({ contestCode })
     // return user details if already added
     if (contest.participants.includes(userid)) {
       const findUser = await User.findById(userid);
       res.status(200).json({
         findUser,
         contestCode,
-        success:true
+        success: true
       });
-     
+
     }
-  }else{
-    return res.status(400).json({ success:false,message: "User not found" });
+  } else {
+    return res.status(400).json({ success: false, message: "User not found" });
   }
 });
 
 
 
-export const getLeaderboard=AsyncHandler(async(req,res)=>{
-    const{contestcode}=req.params;
-    const contest=Contest.findOne({contestCode:contestcode}).populate("participants");
-    if(!contest){
-        return res.status(404).json({message:"Contest not found"});
-    }
+export const getLeaderboard = AsyncHandler(async (req, res) => {
+  const { contestcode } = req.params;
 
-    const particepents=contest.participants;
-    res.send(particepents);
+  const contest = await Contest.findOne({ contestCode: contestcode }).populate("participants");
+  if (!contest) {
+    return res.status(404).json({ message: "Contest not found" });
+  }
+  const particepents = contest.participants;
+
+  //build the list of participants
+  const board = particepents.map((ele) => {
+    return { name: ele.username, noq: ele.questions.length, time: ele.updatedAt }
+  })
+  res.send(board);
 
 });
