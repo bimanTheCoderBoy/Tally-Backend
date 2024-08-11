@@ -30,10 +30,10 @@ export const getContestById = AsyncHandler(async (req, res) => {
   const { contestcode } = req.params;
 
   // Validate the ID format (assuming it's a MongoDB ObjectId)
-  
+
 
   // const contest = await Contest.findById(id).populate('questions');
-  const contest = await Contest.findOne({contestCode:contestcode}).select(" -__v").populate({
+  const contest = await Contest.findOne({ contestCode: contestcode }).select(" -__v").populate({
     path: "questions",
     select: "title difficulty",
   });
@@ -88,12 +88,19 @@ export const createContest = AsyncHandler(async (req, res) => {
       .json({ message: "startTime must be before endTime." });
   }
 
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  for (let i = 0; i < 8; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
   // Create new contest
   const newContest = new Contest({
     title,
     startTime: start,
     endTime: end,
-    contestCode:Math.floor(Math.random() * 100000),
+    contestCode: result,
     questions,
   });
 
@@ -101,7 +108,7 @@ export const createContest = AsyncHandler(async (req, res) => {
   await newContest.save();
 
   // Send success response
-  res.status(201).json({ contestCode: newContest.contestCode });
+  res.status(201).json(newContest.contestCode);
 });
 
 // Join a contest
@@ -300,7 +307,7 @@ export const getUser = AsyncHandler(async (req, res, next) => {
   // Check if the cookie exists
   if (contestCookie) {
     // Extract userid from the cookie
-    const { userid,contestCode } = JSON.parse(contestCookie);
+    const { userid, contestCode } = JSON.parse(contestCookie);
 
     // return user details if already added
     if (contest.participants.includes(userid)) {
@@ -308,25 +315,25 @@ export const getUser = AsyncHandler(async (req, res, next) => {
       res.status(200).json({
         findUser,
         contestCode,
-        success:true
+        success: true
       });
-     
+
     }
-  }else{
-    return res.status(400).json({ success:false,message: "User not found" });
+  } else {
+    return res.status(400).json({ success: false, message: "User not found" });
   }
 });
 
 
 
-export const getLeaderboard=AsyncHandler(async(req,res)=>{
-    const{contestcode}=req.params;
-    const contest=Contest.findOne({contestCode:contestcode}).populate("participants");
-    if(!contest){
-        return res.status(404).json({message:"Contest not found"});
-    }
+export const getLeaderboard = AsyncHandler(async (req, res) => {
+  const { contestcode } = req.params;
+  const contest = Contest.findOne({ contestCode: contestcode }).populate("participants");
+  if (!contest) {
+    return res.status(404).json({ message: "Contest not found" });
+  }
 
-    const particepents=contest.participants;
-    res.send(particepents);
+  const particepents = contest.participants;
+  res.send(particepents);
 
 });
