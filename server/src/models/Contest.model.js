@@ -1,32 +1,20 @@
 
 import mongoose from 'mongoose';
-function generateRandomString(length = 5) {
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-  for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-
-  return result;
+function generateRandomString(length = 8) {
+ 
+  return Math.floor(Math.random() * 100000);
 }
 const ContestSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true 
   },
-  description: {
-    type: String,
-    required: true
-  },
+ 
   contestCode:{
     type:String,
     default:generateRandomString()
   },
-  creator: {
-    type: String,
-    required: true
-  },
+  
   startTime: {
     type: Date,
     required: true
