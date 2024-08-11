@@ -14,9 +14,11 @@ function CodingPlayground() {
     switch (lang) {
       case 'java':
         return `class TempCode {
+
 }`;
       case 'cpp':
         return `class TempCode {
+
 };`;
       default:
         return '';
@@ -38,13 +40,15 @@ function CodingPlayground() {
   // }
   function extractClassName(code) {
     // Regex to match the class that contains the main method
-    const mainClassMatch = code.match(/class\s+(\w+)\s+.*\{[^]*?public\s+static\s+void\s+main\s*\(\s*String\s*\[\s*\]\s*args\s*\)\s*\{[^]*?\}/);
-    
+    // const mainClassMatch = code.match(/class\s+(\w+)\s+.*\{[^]*?public\s+static\s+void\s+main\s*\(\s*String\s*\[\s*\]\s*args\s*\)\s*\{[^]*?\}/);
+    const mainClassMatch = code.match(/class\s+(\w+)[^{]*\{[^{}]*\bpublic\s+static\s+void\s+main\s*\(\s*String\s*\[\s*\]\s*args\s*\)[^{]*\{/);
+
+
     // If a class with the main method is found, return its name
     if (mainClassMatch) {
       return mainClassMatch[1];
     }
-  
+
     // Otherwise, return null
     return null;
   }
@@ -54,7 +58,7 @@ function CodingPlayground() {
 
     const className = extractClassName(code);
 
-    if (className==null) {
+    if (className == null) {
       console.log('Error: No class with main method found in your code.');
       setOutput('Error: No class with main method found in your code.');
       return;
