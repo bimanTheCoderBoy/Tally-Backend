@@ -33,7 +33,7 @@ export const getContestById = AsyncHandler(async (req, res) => {
 
   // const contest = await Contest.findById(id).populate('questions');
   const contest = await Contest.findById(id)
-    .select('-_id -__v') 
+    .select('-_id -__v')
     .populate({
       path: 'questions',
       select: 'title difficulty'
@@ -97,7 +97,7 @@ export const createContest = AsyncHandler(async (req, res) => {
   await newContest.save();
 
   // Send success response
-  res.status(201).json({contestCode:newContest.contestCode});
+  res.status(201).json({ contestCode: newContest.contestCode });
 
 });
 
@@ -105,7 +105,7 @@ export const createContest = AsyncHandler(async (req, res) => {
 // Join a contest
 export const joinContest = AsyncHandler(async (req, res) => {
   // const { id } = req.params;
-  const { userName,contestCode } = req.body;
+  const { userName, contestCode } = req.body;
 
   // console.log("test");
   // console.log(id);
@@ -114,12 +114,12 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
 
   // Validate userName
-  if (!userName ||!contestCode) {
+  if (!userName || !contestCode) {
     return res.status(400).json({ message: 'userName is required' });
   }
-  
+
   // Find the contest and check if it exists
-  const contest = await Contest.findOne({contestCode});
+  const contest = await Contest.findOne({ contestCode });
   if (!contest) {
     return res.status(404).json({ message: 'Contest not found' });
   }
@@ -133,18 +133,25 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
 
   // Add the user to the participants array
- const user=await User.create({
-   username:userName
-})
+  const user = await User.create({
+    username: userName
+  })
   contest.participants.push(user._id);
+
+  // Add the user to the participants array if not already added
+  if (!contest.participants.includes(user._id)) {
+    contest.participants.push(user._id);
+  }
 
   // Save the updated contest
   await contest.save();
-  const options={
+
+  const options = {
     expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
     httpOnly: true,
   }
-  res.cookie('contest',{userid:user._id,contestCode}, options);
+  res.cookie('contest', { userid: user._id, contestCode }, options);
+
   // Respond with success
   res.status(200).json({ message: 'User successfully joined the contest.', userName });
 });
@@ -153,7 +160,7 @@ export const joinContest = AsyncHandler(async (req, res) => {
 
 
 
-export const submitContest = AsyncHandler(async(req,res)=>{
+export const submitContest = AsyncHandler(async (req, res) => {
   res.clearCookie('contest');
   res.status(200).json({ message: 'User successfully submitted the contest' });
 });
@@ -184,6 +191,6 @@ export const submitContest = AsyncHandler(async(req,res)=>{
 //   res.status(200).json(Object.values(leaderboard));
 // });
 
-export const submitQuestion=AsyncHandler(async(req,res)=>{
-  
+export const submitQuestion = AsyncHandler(async (req, res) => {
+
 })
