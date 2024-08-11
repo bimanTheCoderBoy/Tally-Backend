@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Contest from "../models/Contest.model.js";
 import Question from "../models/Questions.model.js";
 import AsyncHandler from "../utils/AsyncHandler.js";
-import crypto from "crypto";
+import fs from "fs";
 import User from "../models/User.model.js";
 import {
   executeCoder,
@@ -208,9 +208,14 @@ export const submitContest = AsyncHandler(async (req, res) => {
 // });
 
 export const submitQuestion = AsyncHandler(async (req, res) => {
+
+  
   const { qid } = req.params;
+  console.log("test 1")
   const data = req.cookies.contest;
+  console.log(data)
   const { userid, contestCode } = JSON.parse(data);
+  console.log("test 1")
 
   const { code, language, className } = req.body;
 
@@ -227,21 +232,23 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   }
 
   const question = await Question.findById(qid);
-
+  console.log("test1")
   if (!question) {
     throw new ApiError("Question not found", 404);
   }
   let result = [];
   const testCases = question.testCases;
-
+  console.log("test1")
   //compile the code
   const folder = await runJavaCompile(code, className);
+  console.log("test1")
   console.log(className + "jjjjjjjjjjjjjjjjjj");
   console.log(folder + "  compiled");
   for (let i = 0; i < testCases.length; i++) {
     const tcinput = testCases[i].input;
     const tcoutput = testCases[i].output;
     let actualOutput = await runJavaInDocker(folder, className, tcinput);
+    console.log("test2")
     // if(actualOutput!=tcoutput){
     //   throw new ApiError('Test case failed',400);
     // }
@@ -262,7 +269,7 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
         status: "failed",
       });
     }
-
+    console.log("test3")
     // console.log(input, expectedOutput);
     // let result=await runCode(language, code, input);
     // if(result!=expectedOutput){
@@ -279,15 +286,17 @@ export const submitQuestion = AsyncHandler(async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+  console.log(result);
   let allPassed = true;
-  for (let i = 0; i < results.length; i++) {
-    if (!results[i].status == "pass") {
+  for (let i = 0; i < result.length; i++) {
+    if (!result[i].status == "passed") {
       allPassed = false;
       break;
     }
   }
+  console.log(allPassed);
   if (allPassed) {
-    await User.findByIdAndUpdate(userid, { $push: { questions: qid } });
+    const response = await User.findByIdAndUpdate(userid, { $push: { questions: qid } });
   }
 
   res.status(200).json(result);
@@ -302,6 +311,7 @@ export const getUser = AsyncHandler(async (req, res, next) => {
     // Extract userid from the cookie
     const { userid,contestCode } = JSON.parse(contestCookie);
 
+const contest = await Contest.findOne({contestCode})
     // return user details if already added
     if (contest.participants.includes(userid)) {
       const findUser = await User.findById(userid);
@@ -321,12 +331,17 @@ export const getUser = AsyncHandler(async (req, res, next) => {
 
 export const getLeaderboard=AsyncHandler(async(req,res)=>{
     const{contestcode}=req.params;
-    const contest=Contest.findOne({contestCode:contestcode}).populate("participants");
+  
+    const contest=await Contest.findOne({contestCode:contestcode}).populate("participants");
     if(!contest){
         return res.status(404).json({message:"Contest not found"});
     }
-
     const particepents=contest.participants;
-    res.send(particepents);
+
+    //build the list of participants
+      const board=particepents.map((ele)=>{
+        return {name:ele.username,noq:ele.questions.length,time:ele.updatedAt}
+      })
+    res.send(board);
 
 });
