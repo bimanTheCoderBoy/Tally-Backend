@@ -93,6 +93,7 @@ export const createContest = AsyncHandler(async (req, res) => {
     title,
     startTime: start,
     endTime: end,
+    contestCode:Math.floor(Math.random() * 100000),
     questions,
   });
 
@@ -314,4 +315,18 @@ export const getUser = AsyncHandler(async (req, res, next) => {
   }else{
     return res.status(400).json({ success:false,message: "User not found" });
   }
+});
+
+
+
+export const getLeaderboard=AsyncHandler(async(req,res)=>{
+    const{contestcode}=req.params;
+    const contest=Contest.findOne({contestCode:contestcode}).populate("participants");
+    if(!contest){
+        return res.status(404).json({message:"Contest not found"});
+    }
+
+    const particepents=contest.participants;
+    res.send(particepents);
+
 });

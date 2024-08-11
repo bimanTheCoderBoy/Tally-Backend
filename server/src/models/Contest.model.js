@@ -1,14 +1,8 @@
 
 import mongoose from 'mongoose';
 function generateRandomString(length = 8) {
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-  for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-
-  return result;
+ 
+  return Math.floor(Math.random() * 100000);
 }
 const ContestSchema = new mongoose.Schema({
   title: {
